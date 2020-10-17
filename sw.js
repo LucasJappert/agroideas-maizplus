@@ -1,6 +1,6 @@
 var _CacheVersion1 = 'AgroIdeasPWA-v=2';
 var _ArchivosCacheados = [
-    '/index.html',
+    './index.html',
     
     // '/js/app.js',
     // '/js/chunk-vendors.js',
@@ -167,7 +167,7 @@ self.addEventListener('fetch', function (e) {
                     return caches.open(_CacheVersion1).then(function (cache) {
                         var _Aux = e.request.url;
                         if(!_ArchivoFisico && !_SolicitudAPI){
-                            _Aux = "http://localhost:2020/index.html";
+                            _Aux = "./index.html";
                         }
                         return cache.match(_Aux).then(function (response) {
                             //console.log("21): " + e.request.url);
