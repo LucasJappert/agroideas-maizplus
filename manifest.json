@@ -1,0 +1,39 @@
+{
+    "name": "AgroIdeas - MaizPlus",
+    "short_name": "AgroIdeas - MaizPlus",
+    "start_url": "./?utm_source=web_app_manifest",
+    "display": "fullscreen",
+    "icons": [{
+        "src": "img/icon-128x128.png?version=3",
+        "sizes": "128x128",
+        "type": "image/png"
+      },
+      {
+        "src": "img/icon-144x144.png?version=3",
+        "sizes": "144x144",
+        "type": "image/png"
+      },
+      {
+        "src": "img/Images/Iconos/icon-152x152.png?version=3",
+        "sizes": "152x152",
+        "type": "image/png"
+      },
+      {
+        "src": "img/icon-192x192.png?version=3",
+        "sizes": "192x192",
+        "type": "image/png"
+      },
+      {
+        "src": "img/icon-256x256.png?version=3",
+        "sizes": "256x256",
+        "type": "image/png"
+      },
+      {
+        "src": "img/icon-512x512.png?version=3",
+        "sizes": "512x512",
+        "type": "image/png"
+      }],
+    "background_color": "#005625",
+    "theme_color": "#005625",
+    "orientation": "any"
+  }
