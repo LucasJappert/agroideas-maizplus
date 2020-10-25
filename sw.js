@@ -1,6 +1,6 @@
-var _CacheVersion1 = 'AgroIdeasPWA-v=2';
+var _CacheVersion1 = 'AgroIdeasPWA-v=8';
 var _ArchivosCacheados = [
-    '/index.html',
+    './index.html',
     
     // '/js/app.js',
     // '/js/chunk-vendors.js',
@@ -102,6 +102,9 @@ function ArchivosExcluido(_url){
         if(_url.includes("sockjs-node") || _url.includes(".hot-update.js")){
             _Retorno = true;
         }
+        if(_url.includes("maps.googleapis")){
+            _Retorno = true;
+        }
     } catch (error) {
         console.log(error);
     }
@@ -136,7 +139,7 @@ self.addEventListener('fetch', function (e) {
             e.respondWith(
                 fetch(e.request).then(
                     function (response) {
-                        //console.log("2): " + e.request.url + "---" + (response != null));
+                        //console.log("2): " + _Url + "---" + (response != null));
                         if (response != null) {
                             var _ResponseCloned = response.clone();
                             if (response.status != 200) {
@@ -147,8 +150,8 @@ self.addEventListener('fetch', function (e) {
                                 //Guardo en caché
                                 if(!_SolicitudAPI){
                                     caches.open(_CacheVersion1).then(function (cache) {
-                                        //console.log('[ServiceWorker] Nuevo elemento cacheado: ' + e.request.url);
-                                        cache.put(e.request.url, _ResponseCloned);
+                                        //console.log('[ServiceWorker] Nuevo elemento cacheado: ' + _Url);
+                                        cache.put(_Url, _ResponseCloned);
                                     }).catch((error) => {
                                         console.error('[Cache] exception!', error);
                                     })
@@ -165,15 +168,19 @@ self.addEventListener('fetch', function (e) {
                 ).catch(() => {
                     //Se da cuando pierde la conexion o lo que se solicita no existe
                     return caches.open(_CacheVersion1).then(function (cache) {
-                        var _Aux = e.request.url;
+                        var _Aux = _Url;
                         if(!_ArchivoFisico && !_SolicitudAPI){
-                            _Aux = "http://localhost:2020/index.html";
+                            if(_Url.includes("/agroideas-maizplus/")){
+                                _Aux = "/agroideas-maizplus/index.html";
+                            }else{
+                                _Aux = "/index.html";
+                            }
                         }
                         return cache.match(_Aux).then(function (response) {
                             //console.log("21): " + e.request.url);
                             if (!response) {
                                 //No lo tengo en caché entonces retorno el NotFound
-                                console.log('NotFound1: ' + e.request.url);
+                                console.log('NotFound1: ' + _Url);
                                 //return cache.match('NotFound.html');
                                 return response;
                             } else {
