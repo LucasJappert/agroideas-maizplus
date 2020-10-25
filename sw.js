@@ -1,4 +1,4 @@
-var _CacheVersion1 = 'AgroIdeasPWA-v=7';
+var _CacheVersion1 = 'AgroIdeasPWA-v=9';
 var _ArchivosCacheados = [
     './index.html',
     
@@ -102,6 +102,9 @@ function ArchivosExcluido(_url){
         if(_url.includes("sockjs-node") || _url.includes(".hot-update.js")){
             _Retorno = true;
         }
+        if(_url.includes(".googleapis.") || _url.includes("maps.gstatic.")){
+            _Retorno = true;
+        }
     } catch (error) {
         console.log(error);
     }
@@ -179,7 +182,8 @@ self.addEventListener('fetch', function (e) {
                                 //No lo tengo en caché entonces retorno el NotFound
                                 console.log('NotFound1: ' + _Url);
                                 //return cache.match('NotFound.html');
-                                return response;
+                                //return response;
+                                return false;
                             } else {
                                 //Retorno versión en caché
                                 console.log('[Offline] Retorno de caché: ', _Aux);
