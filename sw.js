@@ -1,4 +1,4 @@
-var _CacheVersion1 = 'AgroIdeasPWA-v=6';
+var _CacheVersion1 = 'AgroIdeasPWA-v=7';
 var _ArchivosCacheados = [
     './index.html',
     
