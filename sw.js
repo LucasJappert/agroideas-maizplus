@@ -1,4 +1,4 @@
-var _CacheVersion1 = 'AgroIdeasPWA-v=9';
+var _CacheVersion1 = 'AgroIdeasPWA-v=10';
 var _ArchivosCacheados = [
     './index.html',
     
@@ -63,7 +63,8 @@ function RecursoFisico(_url){
     var _Retorno = false;
     try {
         var _Split = _url.split("/");
-        if(_Split[_Split.length - 1].includes(".")){
+        // if(_Split[_Split.length - 1].match(/.*\.(png|jpg|js|json|css|svg|html|woff2|otf|ico)/g)){
+        if(_url.match(/.*\.(png|jpg|js|json|css|svg|html|woff2|otf|ico)/g)){
             _Retorno = true;
         }
     } catch (error) {
@@ -75,6 +76,9 @@ function RecursoApi(_url){
     var _Retorno = false;
     try {
         if(_url.includes("/agroideas/")){
+            _Retorno = true;
+        }
+        if(_url.includes("/users/login")){
             _Retorno = true;
         }
     } catch (error) {
@@ -114,15 +118,11 @@ function ArchivosExcluido(_url){
 self.addEventListener('fetch', function (e) {
     try
     {        
-        //return false; //Descomentar para ignorar PWA
+        // return false; //Descomentar para ignorar PWA
 
         var _Url = e.request.url.toLowerCase();
         //console.log(_Url);
         //console.log(e);
-
-        if(ArchivosExcluido(_Url) || RecursoUpload(_Url)){
-            return false;
-        }
 
         var _Match = true;
         var _ArchivoFisico = false; var _SolicitudAPI = false;
@@ -132,8 +132,14 @@ self.addEventListener('fetch', function (e) {
         _ArchivoFisico = RecursoFisico(_Url);
         _SolicitudAPI = RecursoApi(_Url);
 
-        //console.log("Archivo fisico? (" + _Url + ") ---> " + _ArchivoFisico);
-        // console.log("RecursoUpload? (" + _Url + ") ---> " + RecursoUpload(_Url));
+        if(ArchivosExcluido(_Url) || RecursoUpload(_Url) || _SolicitudAPI){
+            //console.log(_Url);
+            //console.log(ArchivosExcluido(_Url), RecursoUpload(_Url), _SolicitudAPI);
+            return false;
+        }
+
+        //console.log("RecursoApi? (" + _Url + ") ---> " + _SolicitudAPI);
+        //console.log("RecursoUpload? (" + _Url + ") ---> " + RecursoUpload(_Url));
         if (_Match)// && !_SolicitudAPI)
         {
             e.respondWith(
@@ -170,12 +176,15 @@ self.addEventListener('fetch', function (e) {
                     return caches.open(_CacheVersion1).then(function (cache) {
                         var _Aux = _Url;
                         if(!_ArchivoFisico && !_SolicitudAPI){
-                            if(_Url.includes("/agroideas-maizplus/")){
-                                _Aux = "/agroideas-maizplus/index.html";
-                            }else{
-                                _Aux = "/index.html";
-                            }
-                        }
+                            var _Aux = (_Url.indexOf("localhost") > -1) ? "./index.html" : "/agroideas-maizplus/index.html";
+                            //var _Aux = "./index.html";
+                            // if(_Url.includes(_Asd)){
+                            //     _Aux = _Asd + "index.html";
+                            // }else{
+                            //     _Aux = "./index.html";
+                            // }
+                        } 
+                        console.log(_Aux);
                         return cache.match(_Aux).then(function (response) {
                             //console.log("21): " + e.request.url);
                             if (!response) {
@@ -195,7 +204,7 @@ self.addEventListener('fetch', function (e) {
                 })
             );
         } else {
-            //console.log('[Offline] No se pudo recuperar: ' + e.request.url);
+            console.log('[Offline] No se pudo recuperar: ' + e.request.url);
             return false;
             return fetch(e.request).then(
                 function (response) {
