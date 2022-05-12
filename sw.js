@@ -1,7 +1,7 @@
-var _CacheVersion1 = 'AgroIdeasPWA-v=1.0';
+var _CacheVersion1 = 'AgroIdeasPWA-v=1.0.3';
 var _ArchivosCacheados = [
     './index.html',
-    
+
     // '/js/app.js',
     // '/js/chunk-vendors.js',
 
@@ -117,7 +117,7 @@ function ArchivosExcluido(_url){
 
 self.addEventListener('fetch', function (e) {
     try
-    {        
+    {
         // return false; //Descomentar para ignorar PWA
 
         var _Url = e.request.url.toLowerCase();
@@ -128,7 +128,7 @@ self.addEventListener('fetch', function (e) {
         var _ArchivoFisico = false; var _SolicitudAPI = false;
         var _RetornoIndexHTML = false;
 
-        
+
         _ArchivoFisico = RecursoFisico(_Url);
         _SolicitudAPI = RecursoApi(_Url);
 
@@ -151,7 +151,7 @@ self.addEventListener('fetch', function (e) {
                             if (response.status != 200) {
                                 console.log("Caso2");
                                 throw new Error();
-                                //return response; Quizas sacar el throw y devolver el repsonse (ver) 
+                                //return response; Quizas sacar el throw y devolver el repsonse (ver)
                             } else {
                                 //Guardo en caché
                                 if(!_SolicitudAPI){
@@ -183,7 +183,7 @@ self.addEventListener('fetch', function (e) {
                             // }else{
                             //     _Aux = "./index.html";
                             // }
-                        } 
+                        }
                         console.log(_Aux);
                         return cache.match(_Aux).then(function (response) {
                             //console.log("21): " + e.request.url);
@@ -237,10 +237,10 @@ self.addEventListener('fetch', function (e) {
 
 // self.addEventListener('fetch', function (e) {
 //     try
-//     {        
+//     {
 //         return false;
 //         var _Url = e.request.url.toLowerCase();
-        
+
 //         //Retorno si es algo de mercadopago
 //         if (_Url.indexOf("mercadopago") > -1) {
 //             return false;
@@ -262,7 +262,7 @@ self.addEventListener('fetch', function (e) {
 //         }
 
 //         //console.log("1): " + e.request.url);
-        
+
 //         //console.log("1): " + e.request.url);
 //         var _Match = false;
 //         var _UrlN = e.request.url;
