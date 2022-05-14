@@ -1,381 +1,124 @@
-var _CacheVersion1 = 'AgroIdeasPWA-v=1.0.4';
-var _ArchivosCacheados = [
-    './index.html',
-
-    // '/js/app.js',
-    // '/js/chunk-vendors.js',
-
-    // '/img/logo-agroideas.7436c321.png',
-    // '/img/logo-maiz-plus.8a3f6b67.png',
-
-    // // '/main.html',
-    // // '/Images/404.jpg',
-    // '/favicon.ico'
+// Change the version to force the SW to update (install and activate)
+const version = "1.0.6";
+const staticCache = 'AgroideasApp-staticCache-' + version;
+const dynamicCache = 'AgroideasApp-dynamicCache-' + version;
+var staticFiles = [
+    "./index.html",
 ];
 
 self.addEventListener('install', function (e) {
     try {
-        //Para omitir el skipWaiting y lo refresque automaticamente.
         self.skipWaiting();
-
-        caches.keys().then(function (keyList) {
-            return Promise.all(keyList.map(function (key) {
-                if (key !== _CacheVersion1) {
-                    console.log('[ServiceWorker] Removing old cache', key);
-                    return caches.delete(key);
-                }
-            }));
-        });
         e.waitUntil(
-
-            caches.open(_CacheVersion1).then(function (cache) {
-                console.log('[ServiceWorker] Caching app shell');
-                return cache.addAll(_ArchivosCacheados);
+            caches.open(staticCache).then(function (cache) {
+                console.log('[ServiceWorker] Caching app shell data');
+                return cache.addAll(staticFiles);
             })
-        );
-
+        )
         console.log('[ServiceWorker] Install');
-    } catch (error) { console.log(error);}
+    } catch (e) { console.error(e); }
 });
 
-self.addEventListener('activate', function (e) {
-    try
-    {
+self.addEventListener('activate', function (event) {
+    try {
         console.log('[ServiceWorker] Activate');
-        e.waitUntil(
+        event.waitUntil(
             caches.keys().then(function (keyList) {
                 return Promise.all(keyList.map(function (key) {
-                    console.log(key);
-                    if (key !== _CacheVersion1)
-                    {
-                    console.log('[ServiceWorker] Removing old cache', key);
-                    return caches.delete(key);
+                    if (key !== staticCache && key !== dynamicCache) {
+                        console.log('[ServiceWorker] Removing old cache', key);
+                        return caches.delete(key);
                     }
                 }));
             })
         );
         return self.clients.claim();
-
-    } catch (error) { console.log(error); }
+    } catch (e) {
+        console.error(e);
+    }
 });
 
-function RecursoFisico(_url){
-    var _Retorno = false;
+function ExcludedFile(fileUrl) {
+    var result = false;
     try {
-        var _Split = _url.split("/");
-        // if(_Split[_Split.length - 1].match(/.*\.(png|jpg|js|json|css|svg|html|woff2|otf|ico)/g)){
-        if(_url.match(/.*\.(png|jpg|js|json|css|svg|html|woff2|otf|ico)/g)){
-            _Retorno = true;
+        const strings = [
+            'sockjs-node',
+            '.googleapis.',
+            'maps.gstatic.',
+            'hot-update.js',
+            'use.fontawesome.com'
+        ];
+        for (var i = 0; i < strings.length; i++) {
+            if (fileUrl.includes(strings[i])) {
+                result = true;
+                break;
+            }
         }
     } catch (error) {
         console.log(error);
     }
-    return _Retorno;
+    return result;
 }
-function RecursoApi(_url){
-    var _Retorno = false;
+
+self.addEventListener('fetch', function (event) {
     try {
-        if(_url.includes("/agroideas/")){
-            _Retorno = true;
-        }
-        if(_url.includes("/users/login")){
-            _Retorno = true;
-        }
-    } catch (error) {
-        console.log(error);
-    }
-    return _Retorno;
-}
-function RecursoUpload(_url){
-    var _Retorno = false;
-    try {
-        if(_url.includes("/uploads/pdf")){
-            _Retorno = false;
-        }
-        else if(_url.includes("/upload")){
-            _Retorno = true;
-        }
-    } catch (error) {
-        console.log(error);
-    }
-    return _Retorno;
-}
-function ArchivosExcluido(_url){
-    var _Retorno = false;
-    try {
-        if(_url.includes("sockjs-node") || _url.includes(".hot-update.js")){
-            _Retorno = true;
-        }
-        if(_url.includes(".googleapis.") || _url.includes("maps.gstatic.")){
-            _Retorno = true;
-        }
-    } catch (error) {
-        console.log(error);
-    }
-    return _Retorno;
-}
-
-self.addEventListener('fetch', function (e) {
-    try
-    {
-        // return false; //Descomentar para ignorar PWA
-
-        var _Url = e.request.url.toLowerCase();
-        //console.log(_Url);
-        //console.log(e);
-
-        var _Match = true;
-        var _ArchivoFisico = false; var _SolicitudAPI = false;
-        var _RetornoIndexHTML = false;
-
-
-        _ArchivoFisico = RecursoFisico(_Url);
-        _SolicitudAPI = RecursoApi(_Url);
-
-        if(ArchivosExcluido(_Url) || RecursoUpload(_Url) || _SolicitudAPI){
-            //console.log(_Url);
-            //console.log(ArchivosExcluido(_Url), RecursoUpload(_Url), _SolicitudAPI);
+        const requestUrl = event.request.url.toLowerCase();
+        if (ExcludedFile(requestUrl)) {
             return false;
         }
 
-        //console.log("RecursoApi? (" + _Url + ") ---> " + _SolicitudAPI);
-        //console.log("RecursoUpload? (" + _Url + ") ---> " + RecursoUpload(_Url));
-        if (_Match)// && !_SolicitudAPI)
-        {
-            e.respondWith(
-                fetch(e.request).then(
-                    function (response) {
-                        //console.log("2): " + _Url + "---" + (response != null));
-                        if (response != null) {
-                            var _ResponseCloned = response.clone();
-                            if (response.status != 200) {
-                                console.log("Caso2");
-                                throw new Error();
-                                //return response; Quizas sacar el throw y devolver el repsonse (ver)
-                            } else {
-                                //Guardo en caché
-                                if(!_SolicitudAPI){
-                                    caches.open(_CacheVersion1).then(function (cache) {
-                                        //console.log('[ServiceWorker] Nuevo elemento cacheado: ' + _Url);
-                                        cache.put(_Url, _ResponseCloned);
-                                    }).catch((error) => {
-                                        console.error('[Cache] exception!', error);
-                                    })
-                                }
-                                //Retorno la respuesta del server
-                                return response;
-                            }
-                        } else {
-                            // console.log("Recuperado de sw: - " + _Url);
-                            console.log("Caso1");
-                            return response;
-                        }
-                    }
-                ).catch(() => {
-                    //Se da cuando pierde la conexion o lo que se solicita no existe
-                    return caches.open(_CacheVersion1).then(function (cache) {
-                        var _Aux = _Url;
-                        if(!_ArchivoFisico && !_SolicitudAPI){
-                            var _Aux = (_Url.indexOf("localhost") > -1) ? "./index.html" : "/agroideas-maizplus/index.html";
-                            //var _Aux = "./index.html";
-                            // if(_Url.includes(_Asd)){
-                            //     _Aux = _Asd + "index.html";
-                            // }else{
-                            //     _Aux = "./index.html";
-                            // }
-                        }
-                        console.log(_Aux);
-                        return cache.match(_Aux).then(function (response) {
-                            //console.log("21): " + e.request.url);
-                            if (!response) {
-                                //No lo tengo en caché entonces retorno el NotFound
-                                console.log('NotFound1: ' + _Url);
-                                //return cache.match('NotFound.html');
-                                //return response;
-                                return false;
-                            } else {
-                                //Retorno versión en caché
-                                console.log('[Offline] Retorno de caché: ', _Aux);
-                                return response;
-                            }
-                        })
+        let parCors = {};
+
+        event.respondWith(
+            // Check if exist in cache.
+            caches.match(event.request)
+            .then(cacheRes => {
+                if (cacheRes) {
+                    return fetch(event.request, parCors).then(fetchRes => {
+                        saveInDynamicCache(fetchRes.clone(), event);
+                        return fetchRes;
+                    }).catch(err => {
+                        console.error(err);
+                        return cacheRes;
+                    });
+                } else {
+                    return fetch(event.request, parCors).then(fetchRes => {
+                        saveInDynamicCache(fetchRes.clone(), event);
+                        return fetchRes;
                     })
-
-                })
-            );
-        } else {
-            console.log('[Offline] No se pudo recuperar: ' + e.request.url);
-            return false;
-            return fetch(e.request).then(
-                function (response) {
-                    //console.log('1 - ' + e.request.url + ' - ' + _Match);
-                    return response;
                 }
-            ).catch(() => {
-                console.log('catch1 - ' + e.request.url + ' - ' + _Match);
-                //console.log('asdsadsadasdasd');
-            });
-            //e.respondWith(
-            //    caches.match(e.request).then(function (response) {
-            //        if (!response) {
-            //            return fetch(e.request).catch(() => {
-            //                console.log('NotFound sin match: ' + e.request.url);
-            //                console.log('NotFound sin match1: ' + response);
-            //                return caches.match('NotFound.html');
-            //            })
-            //        } else {
-            //            return response;
-            //        }
-            //    })
-            //);
-        }
-    }
-    catch (error) {
+            })
+            .catch(() => {
+                // If the file is not in cache and there is no internet connection
+                if (event.request.mode === 'navigate') {
+                    //TODO:
+                    console.log(event.request);
+                    var indexPath = requestUrl.indexOf("localhost") > -1 ? "./index.html" : "./agroideas-maizplus/index.html";
+                    //index.html should be in static cache
+                    return caches.match(indexPath);
+                    // if (requestUrl.includes("lib/pdfjs/web/viewer.html")) {
+                    //     return caches.match('lib/pdfjs/web/viewer.html');
+                    // } else {
+                    //     //console.log(requestUrl);
+                    //     return caches.match('es/errorpwa');
+                    // }
+                }
+            })
+        );
+
+    } catch (error) {
         console.log(error);
     }
 });
 
-// self.addEventListener('fetch', function (e) {
-//     try
-//     {
-//         return false;
-//         var _Url = e.request.url.toLowerCase();
-
-//         //Retorno si es algo de mercadopago
-//         if (_Url.indexOf("mercadopago") > -1) {
-//             return false;
-//         }
-//         //Retorno si es algo de googleads
-//         if (_Url.indexOf("googleads") > -1) {
-//             return false;
-//         }
-//         //Retorno si es el carrito
-//         if (_Url.indexOf("/carrito/servicios") > -1) {
-//             return false;
-//         }
-
-//         if ((_Url.indexOf("localhost:") > -1) || (_Url.indexOf("megatone.net") > -1) || (_Url.indexOf("megatonewc.grupobazar") > -1)) {
-//             //Sigue normal
-//         }
-//         else {
-//             return false;
-//         }
-
-//         //console.log("1): " + e.request.url);
-
-//         //console.log("1): " + e.request.url);
-//         var _Match = false;
-//         var _UrlN = e.request.url;
-//         if ((_Url.indexOf("recursosweb.asmx") > -1) || (_Url.indexOf("producto.asmx") > -1)) {
-//             _Match = true;
-//         }
-//         else if (_Url.match(/.*\/(producto|search|listado|landing)\/.*/g)) {
-//             _Match = true;
-//         } else if (_Url.match(/.*\.(png|jpg|js|json|css|svg|html|woff2|otf|ico)/g) && ((_Url.indexOf("localhost") > -1) || (_Url.indexOf("megatone.net") > -1) || (_Url.indexOf("megatonewc.grupobazar") > -1))) {
-//             _Match = true;
-//         } else if (_UrlN.match(/.*\/WsProducto\/.*|WsEspecificacionesProducto\/.*|RecursosWeb.asmx\/.*|WsProductosSugeridos\/.*|WsProductosSimilares\/.*/g)) {
-//             _Match = true;
-//         }
-
-//         //if (_Url.match(/.*(localhost.*|megatone.net.*)\/.*/g)) {
-//         //    _Match = true;
-//         //}
-
-//         if ((_Url.indexOf("localhost") > -1) || (_Url.indexOf("megatone.net") > -1) || (_Url.indexOf("webservices") > -1)) {
-//             _Match = true;
-//         }
-
-
-//         if (_Match)
-//         {
-//             //Chequeo si el Match es del dominio megatone.net, para de esta manera setear la variable _Par
-//             var _OtroDominio = false;
-//             var _Par = { };
-//             if ((_Url.indexOf("megatone.net") > -1) && (_Url.indexOf("recursosweb.asmx") == -1)) {
-//                 _Par = {
-//                     mode: 'no-cors'
-//                 };
-//                 _OtroDominio = true;
-//             }
-
-//             if ((_Url.indexOf("megatone.net") == -1) || (_Url.indexOf("localhost") == -1)) {
-//                 //Para que salte el throw
-//                 _OtroDominio = true;
-//             }
-
-//             e.respondWith(
-//                 fetch(e.request, _Par).then(
-//                     function (response) {
-//                         //console.log("2): " + e.request.url + "---" + (response != null));
-//                         if (!response) {
-//                             var _ResponseCloned = response.clone();
-//                             if (response.status != 200 && _OtroDominio == false) {
-//                                 console.log('throw: ' + e.request.url);
-//                                 throw new Error();
-//                             } else {
-//                                 //Guardo en caché
-//                                 caches.open(_CacheVersion1).then(function (cache) {
-//                                     //console.log('[ServiceWorker] Nuevo elemento cacheado: ' + e.request.url);
-//                                     cache.put(e.request.url, _ResponseCloned);
-//                                 }).catch((error) => {
-//                                     console.error('[Cache] exception!', error);
-//                                 })
-//                                 //Retorno la respuesta del server
-//                                 return response;
-//                             }
-//                         } else {
-//                             return response;
-//                         }
-//                     }
-//                 ).catch(() => {
-//                     //console.log("2): " + e.request.url);
-//                     return caches.open(_CacheVersion1).then(function (cache) {
-//                         return cache.match(e.request.url).then(function (response) {
-//                             //console.log("21): " + e.request.url);
-//                             if (!response) {
-//                                 //No lo tengo en caché entonces retorno el NotFound
-//                                 console.log('NotFound1: ' + e.request.url);
-//                                 return cache.match('NotFound.html');
-//                                 //return response;
-//                             } else {
-//                                 //Retorno versión en caché
-//                                 //console.log('[Cache] Retorno caché: ', response);
-//                                 return response;
-//                             }
-//                         })
-//                     })
-
-//                 })
-//             );
-//         } else {
-//             return fetch(e.request).then(
-//                 function (response) {
-//                     //console.log('1 - ' + e.request.url + ' - ' + _Match);
-//                     return response;
-//                 }
-//             ).catch(() => {
-//                 console.log('catch1 - ' + e.request.url + ' - ' + _Match);
-//                 //console.log('asdsadsadasdasd');
-//             });
-//             //e.respondWith(
-//             //    caches.match(e.request).then(function (response) {
-//             //        if (!response) {
-//             //            return fetch(e.request).catch(() => {
-//             //                console.log('NotFound sin match: ' + e.request.url);
-//             //                console.log('NotFound sin match1: ' + response);
-//             //                return caches.match('NotFound.html');
-//             //            })
-//             //        } else {
-//             //            return response;
-//             //        }
-//             //    })
-//             //);
-//         }
-//     }
-//     catch (error) {
-//         console.log(error);
-//     }
-// });
+const okStatus = [200, 201, 202, 203, 204, 205];
+function saveInDynamicCache(fetchRes, event) {
+    if (okStatus.includes(fetchRes.status)) {
+        caches.open(dynamicCache).then(cache => {
+            cache.put(event.request.url, fetchRes);
+        })
+    }
+}
 
 self.addEventListener('push', function (event) {
     //try {
